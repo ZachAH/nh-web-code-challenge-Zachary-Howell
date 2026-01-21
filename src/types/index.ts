@@ -7,17 +7,17 @@ export interface Location {
 }
 
 /**
- * Represents a Nice Healthcare provider and their starting/ending home base[cite: 3, 10].
+ * Represents a Nice Healthcare provider and their starting/ending home base.
  */
 export interface Clinician extends Location {}
 
 /**
- * Represents a facility where lab specimens are dropped off after a visit[cite: 7, 22].
+ * Represents a facility where lab specimens are dropped off after a visit.
  */
 export interface Lab extends Location {}
 
 /**
- * The calculated result of the dispatch algorithm used to update the UI[cite: 34].
+ * The calculated result of the dispatch algorithm used to update the UI.
  */
 export interface DispatchResult {
   clinicianName: string;
