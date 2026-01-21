@@ -46,6 +46,11 @@ The project follows a modular architecture to ensure separation of concerns:
 * **Load Balancing**: Preventing provider burnout by factoring in current daily workloads.
 * **Shift Management**: Cross-referencing route duration with remaining shift hours to avoid overtime.
 
+### 3. Security & Environment Configuration
+- **Environment Secrets**: In a production environment, API keys for Geocoding services (e.g., Google Maps) would never be hardcoded. I would utilize `.env` files and secret management tools (like GitHub Secrets or AWS Secrets Manager) to inject these at build time, following the 12-Factor App methodology.
+- **Input Sanitization**: To prevent XSS or injection attacks, all user-entered addresses would be sanitized before being sent to the backend or calculation engine.
+- **Rate Limiting**: Implementation of API rate limiting on the dispatch endpoint to prevent denial-of-service (DoS) attacks and manage costs associated with third-party geocoding services.
+
 ---
 
 ## 📦 Installation & Setup
