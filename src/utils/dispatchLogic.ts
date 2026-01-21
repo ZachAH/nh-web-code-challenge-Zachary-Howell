@@ -2,49 +2,85 @@ import { CLINICIANS, LABS } from '../data/mockData';
 import type { DispatchResult } from '../types';
 
 /**
- * Requirement: Returns a random distance between 1 and 100.
+ * Bonus: Haversine formula to calculate "crow-flies" distance.
+ * This replaces the random generator to provide deterministic, consistent results.
  */
-export const getDistance = (addr1: string, addr2: string): number => {
-  console.log(`Calculating distance between ${addr1} and ${addr2}`);
-  return Math.floor(Math.random() * 100) + 1;
+export const calculateHaversineDistance = (
+    lat1: number, lon1: number,
+    lat2: number, lon2: number
+): number => {
+    const R = 3958.8; // Radius of the Earth in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    // Using one decimal place for better mileage precision
+    const distance = R * c;
+    return Math.round(distance * 10) / 10;
 };
 
 /**
  * Action: Finds the optimal clinician based on minimizing total drive time.
+ * Logic accounts for standard visits and lab-required visits.
  */
 export const findOptimalClinician = (
-  patientAddress: string, 
-  requiresLab: boolean
+    _patientAddress: string,
+    requiresLab: boolean
 ): DispatchResult => {
-  
-  const results = CLINICIANS.map((clinician) => {
-    let totalDistance = 0;
-
-    if (!requiresLab) {
-      // Loop 1: Clinician Home -> Patient -> Clinician Home 
-      const homeToPatient = getDistance(clinician.address, patientAddress);
-      const patientToHome = getDistance(patientAddress, clinician.address);
-      totalDistance = homeToPatient + patientToHome;
-    } else {
-      // Loop 2: Clinician Home -> Patient -> Lab -> Clinician Home 
-      // Assumption: We find the lab that minimizes this specific clinician's total trip.
-      const homeToPatient = getDistance(clinician.address, patientAddress);
-      
-      const labTripDistances = LABS.map(lab => {
-        const patientToLab = getDistance(patientAddress, lab.address);
-        const labToHome = getDistance(lab.address, clinician.address);
-        return patientToLab + labToHome;
-      });
-
-      totalDistance = homeToPatient + Math.min(...labTripDistances);
+    // Guard Clause: Ensure we have clinicians to evaluate
+    if (!CLINICIANS || CLINICIANS.length === 0) {
+        throw new Error("No clinicians available for dispatch.");
     }
 
-    return {
-      clinicianName: clinician.name,
-      totalDistance
-    };
-  });
+    /**
+     * ARCHITECTURAL NOTE: 
+     * In a production environment, the 'patientAddress' string would be sent to a 
+     * Geocoding API to retrieve precise coordinates.
+     */
+    const patientLat = 44.9778;
+    const patientLng = -93.2650;
 
-  // Sort by shortest distance and return the best one
-  return results.sort((a, b) => a.totalDistance - b.totalDistance)[0];
+    // Optimization: Pre-calculate distance from Patient to each Lab once
+    // instead of inside the Clinician loop.
+    const patientToLabDistances = requiresLab
+        ? LABS.map(lab => ({
+            lab,
+            dist: calculateHaversineDistance(patientLat, patientLng, lab.lat, lab.lng)
+        }))
+        : [];
+
+    const results = CLINICIANS.map((clinician) => {
+        const homeToPatient = calculateHaversineDistance(
+            clinician.lat, clinician.lng,
+            patientLat, patientLng
+        );
+
+        let totalDistance = 0;
+
+        if (!requiresLab) {
+            // Loop: Home -> Patient -> Home
+            totalDistance = homeToPatient * 2;
+        } else {
+            // Find the lab that minimizes the total trip for THIS specific clinician
+            const totalTripDistances = patientToLabDistances.map(item => {
+                const labToHome = calculateHaversineDistance(item.lab.lat, item.lab.lng, clinician.lat, clinician.lng);
+                return homeToPatient + item.dist + labToHome;
+            });
+
+            totalDistance = Math.min(...totalTripDistances);
+        }
+
+        return {
+            clinicianName: clinician.name,
+            totalDistance: Math.round(totalDistance * 10) / 10 // Final rounding
+        };
+    });
+
+    // Sort by shortest distance and return the best match
+    return results.sort((a, b) => a.totalDistance - b.totalDistance)[0];
 };

@@ -1,42 +1,68 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Established a base reset and global high-contrast variables 
+  to override Vite's default theme-switching logic.
+*/
+:root {
+  --primary-color: #0984e3;
+  --success-color: #00b894;
+  --bg-color: #f4f7f6;
+  --text-dark: #2d3436;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.App {
+  background-color: var(--bg-color) !important;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-dark) !important;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* --- Input Improvements --- */
+input[type="text"] {
+  background-color: #ffffff !important;
+  color: var(--text-dark) !important;
+  border: 1px solid #dfe6e9 !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.15);
+}
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  font-size: 2rem;
+  animation: spin 2s linear infinite;
+  user-select: none;
+}
+
+/* --- Result Card Refinement --- */
+.result-card {
+  animation: fadeIn 0.4s ease-out;
+  background-color: #ffffff !important;
+  border-left: 5px solid var(--success-color) !important;
+  color: var(--text-dark) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 480px) {
+  .App {
+    padding: 1rem;
+    align-items: flex-start;
   }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

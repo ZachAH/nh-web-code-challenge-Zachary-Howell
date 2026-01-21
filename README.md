@@ -14,31 +14,37 @@ A specialized internal tool designed for healthcare coordinators to efficiently 
 - **Loop Logic**:
   - **Standard Visit**: Home → Patient → Home.
   - **Lab Visit**: Home → Patient → Optimal Lab → Home.
-- **State Management**: Developed using React hooks with explicit **loading states** to prevent UI flickering, handle async-simulated calculations, and eliminate infinite re-render loops.
+- **State Management**: Developed using React hooks with explicit **loading states** to prevent UI flickering and eliminate infinite re-render loops. Used `useMemo` and `useCallback` for optimized performance.
+
+---
+
+## 🏗️ Project Structure
+The project follows a modular architecture to ensure separation of concerns:
+- `src/components`: UI Presentation layer (Dashboard).
+- `src/utils`: Business and mathematical logic (Haversine/Dispatch algorithms).
+- `src/data`: Mock data stores.
+- `src/types`: Centralized TypeScript interfaces.
 
 ---
 
 ## 🧠 Assumptions
 
-In the absence of specific product requirements for edge cases, the following engineering decisions were made:
-
-1.  **Optimal Lab Selection**: I assumed the "best" lab is the one that minimizes the **total round-trip** for the clinician (Home → Patient → Lab → Home), rather than simply the lab closest to the patient. This prioritizes the clinician's total time on the road.
-2.  **Patient Location**: As no Geocoding API was provided for this assessment, the system currently anchors the patient's coordinates to **Central Minneapolis** (44.9778° N, 93.2650° W) to demonstrate the logic across the provided mock data.
+1.  **Optimal Lab Selection**: I assumed the "best" lab is the one that minimizes the **total round-trip** for the clinician (Home → Patient → Lab → Home), rather than simply the lab closest to the patient.
+2.  **Patient Location**: As no Geocoding API was provided, the system currently anchors the patient's coordinates to **Central Minneapolis** (44.9778° N, 93.2650° W) for demonstration purposes.
 
 ---
 
 ## 🛠️ Production Considerations
 
 ### 1. MVP Limiting Factors & User Issues
-* **Geocoding Strategy**: The current solution relies on mocked patient coordinates. In a production environment, a Geocoding API (e.g., Google Maps, Mapbox) would be integrated to convert user-entered strings into real-time latitude/longitude data.
-* **Geographic Impediments**: Haversine measures direct distance. A production-ready app must account for actual road networks, traffic congestion, and physical barriers (like the Mississippi River) that significantly impact drive time in the Twin Cities.
-* **Data Architecture**: Currently, data is stored in static mock files. For scaling to a national provider level, this would require a backend with spatial indexing (e.g., PostGIS) and API-driven data fetching.
+* **Geocoding Strategy**: In production, a Geocoding API (e.g., Google Maps) would convert the `patientAddress` string into real-time latitude/longitude data.
+* **Geographic Impediments**: A production app must account for actual road networks and traffic rather than just "as-the-crow-flies" distance.
+* **Data Architecture**: National scaling would require a backend with spatial indexing (e.g., PostGIS) rather than static JSON files.
 
 ### 2. Optimization Factors (Future Roadmap)
-* **Clinician Specialty Matching**: Aligning specific patient needs (e.g., pediatric expertise) with provider credentials.
-* **Load Balancing**: Factoring in a clinician's existing daily workload to prevent provider burnout, even if they are geographically the closest.
-* **Shift Management**: Cross-referencing route duration with remaining shift hours to avoid unauthorized overtime.
-* **Predictive Routing**: Utilizing live traffic APIs to optimize for **Estimated Time of Arrival (ETA)** rather than just physical mileage.
+* **Clinician Specialty Matching**: Aligning patient needs (e.g., pediatric expertise) with provider credentials.
+* **Load Balancing**: Preventing provider burnout by factoring in current daily workloads.
+* **Shift Management**: Cross-referencing route duration with remaining shift hours to avoid overtime.
 
 ---
 
